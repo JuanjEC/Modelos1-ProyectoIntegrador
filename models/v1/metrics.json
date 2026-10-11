@@ -1,0 +1,17 @@
+{
+  "metrica_principal": "MAE",
+  "modelo": {
+    "MAE": 118404.0226418959,
+    "RMSE": 388746.28539776924,
+    "R2": 0.42357899935197363
+  },
+  "baseline_mediana": {
+    "MAE": 192459.9205,
+    "RMSE": 532043.0768114275,
+    "R2": -0.07969448543664037
+  },
+  "mejora_vs_baseline": {
+    "MAE_reduccion_pct": 38.478607735943704
+  },
+  "evaluado_sobre": "conjunto de prueba (2000 filas)"
+}
