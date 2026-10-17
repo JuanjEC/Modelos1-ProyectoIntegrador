@@ -42,7 +42,7 @@ Fuga de informacion: la separacion train/test se hace antes de ajustar cualquier
 
 # Fase 2: Scripts y Docker. Prediccion de precios de vehiculos usados (UAE)
 
-**Entrega 2, commit o etiqueta:** `entrega-2` (completar con el hash del commit tras crear la etiqueta).
+**Entrega 2, commit o etiqueta:** `entrega-2`.
 
 ## Problema y relacion con la Fase 1
 
@@ -91,7 +91,7 @@ Reglas de prediccion: columna requerida ausente o `Year`/`Mileage` no numericos 
 
 ## Uso
 
-Todos los comandos se ejecutan dentro de `fase-2/`, en **una sola linea**.
+Todos los comandos se ejecutan en **una sola linea**.
 
 ```bash
 python train.py --help
@@ -153,7 +153,8 @@ El entrenamiento NO ocurre en `docker build`; `models/` y `outputs/` persisten e
 
 ## Evidencia de ejecucion
 
-_Completar con la salida real de pytest, de train.py, de predict.py y de Docker (capturas o texto)._
+![tests](evidencia/tests.png)
+Salida completa de la verificacion: [evidencia/resultado.txt](evidencia/resultado.txt).
 
 ## Fuentes
 

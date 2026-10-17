@@ -1,0 +1,121 @@
+== 1. Python y pytest
+Python 3.14.2
+........                                                                 [100%]
+8 passed in 4.02s
+
+== 2. CSV de ejemplo para predecir (sin Price)
+ya existe data/ejemplo_prediccion.csv
+
+== 3. Prediccion local con v1 (ruta .joblib) y v2 (carpeta)
+Predicciones generadas: 5 filas -> outputs/pred_v1.csv
+codigo de salida: 0
+Predicciones generadas: 5 filas -> outputs/pred_v2.csv
+codigo de salida: 0
+==> outputs/pred_v1.csv <==
+Make,Model,Year,Mileage,Body Type,Cylinders,Transmission,Fuel Type,Color,Location,Description,prediccion
+toyota,rush,2022,291202,SUV,4,Automatic Transmission,Gasoline,Brown, Dubai,"2022 toyota rush with Bluetooth, Adaptive cruise control. Condition: Repainted bumper.",64278.0
+mazda,6,2006,236561,Sedan,4,Automatic Transmission,Gasoline,White, Dubai,"2006 mazda 6 with Sunroof, Adaptive cruise control, Navigation system, Bluetooth. Condition: No damage.",55055.4
+
+==> outputs/pred_v2.csv <==
+Make,Model,Year,Mileage,Body Type,Cylinders,Transmission,Fuel Type,Color,Location,Description,prediccion
+toyota,rush,2022,291202,SUV,4,Automatic Transmission,Gasoline,Brown, Dubai,"2022 toyota rush with Bluetooth, Adaptive cruise control. Condition: Repainted bumper.",58252.04
+mazda,6,2006,236561,Sedan,4,Automatic Transmission,Gasoline,White, Dubai,"2006 mazda 6 with Sunroof, Adaptive cruise control, Navigation system, Bluetooth. Condition: No damage.",37940.21
+
+== 4. Version repetida (debe rechazarse, codigo 1)
+ERROR: La version 'v1' ya existe en models/v1. Elija otro identificador.
+codigo de salida: 1
+
+== 5. Modelo inexistente (debe fallar, codigo 1, sin crear el CSV)
+ERROR: No se encontro el modelo: models/no-existe/modelo.joblib
+codigo de salida: 1
+ls: cannot access 'outputs/no_debe_existir.csv': No such file or directory
+
+== 6. Metadatos de v1 y v2 (python_version y git_commit)
+models/v1/metadata.json:  "python_version": "3.14.2",
+models/v1/metadata.json:  "git_commit": "2ec6118934d39e7938ffa8b3cd4dbb33122138b5"
+models/v2/metadata.json:  "python_version": "3.14.2",
+models/v2/metadata.json:  "git_commit": "2ec6118934d39e7938ffa8b3cd4dbb33122138b5"
+
+== 7. Docker: build
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 496B done
+#1 DONE 0.0s
+
+#2 [auth] library/python:pull token for registry-1.docker.io
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/python:3.14.2
+#3 DONE 0.2s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 193B done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 1.43kB done
+#5 DONE 0.0s
+
+#6 [1/7] FROM docker.io/library/python:3.14.2@sha256:fbf695a1b7e4fd39dfac43165c0da0949262531ecd8e901abe641d79f596af80
+#6 resolve docker.io/library/python:3.14.2@sha256:fbf695a1b7e4fd39dfac43165c0da0949262531ecd8e901abe641d79f596af80 0.0s done
+#6 DONE 0.0s
+
+#7 [3/7] COPY requirements.txt .
+#7 CACHED
+
+#8 [5/7] COPY src/ ./src/
+#8 CACHED
+
+#9 [6/7] COPY tests/ ./tests/
+#9 CACHED
+
+#10 [2/7] WORKDIR /app
+#10 CACHED
+
+#11 [4/7] RUN pip install --no-cache-dir -r requirements.txt
+#11 CACHED
+
+#12 [7/7] COPY train.py predict.py ./
+#12 CACHED
+
+#13 exporting to image
+#13 exporting layers done
+#13 exporting manifest sha256:eba458993be64cd00ac1f2b298e73d6bc68217268b4aa010f042be497cc314a3 done
+#13 exporting config sha256:51666e7784eb732597b35563d56a35c13cfa9e914cff824a0965cb691adda795 done
+#13 exporting attestation manifest sha256:c04a6b99e31597abf593f2a7f83c881aa103085164038136a47dc92643a94671 0.0s done
+#13 exporting manifest list sha256:a5ccde1540f28a0af698fbd20339475b63991479a64595dd37d65669fecf98a4 done
+#13 naming to docker.io/library/modelos-fase2:1.0 done
+#13 unpacking to docker.io/library/modelos-fase2:1.0
+#13 unpacking to docker.io/library/modelos-fase2:1.0 0.0s done
+#13 DONE 0.1s
+codigo de salida: 0
+
+== 8. Docker: entrenamiento (version v-docker)
+Version 'v-docker' entrenada (random_forest, log_target=False)
+  Modelo   -> MAE=118404.02  RMSE=388746.29  R2=0.4236
+  Baseline -> MAE=192459.92  RMSE=532043.08  R2=-0.0797
+  model: models/v-docker/modelo.joblib
+  metrics: models/v-docker/metrics.json
+  metadata: models/v-docker/metadata.json
+codigo de salida: 0
+
+== 9. Docker: prediccion con v-docker
+Predicciones generadas: 5 filas -> outputs/pred_docker.csv
+codigo de salida: 0
+
+== 10. Persistencia fuera del contenedor
+-rw-rw-rw-  1 root root 1047 Oct 17 05:22 outputs/pred_docker.csv
+
+models/v-docker:
+total 1984
+-rw-rw-rw- 1 root root    1427 Oct 17 05:22 metadata.json
+-rw-rw-rw- 1 root root     388 Oct 17 05:22 metrics.json
+-rw-rw-rw- 1 root root 2022765 Oct 17 05:22 modelo.joblib
+
+== 11. pytest dentro de Docker
+........                                                                 [100%]
+8 passed in 4.16s
+codigo de salida: 0
+
+== Fin. Para borrar lo de prueba: sudo rm -rf models/v-docker
