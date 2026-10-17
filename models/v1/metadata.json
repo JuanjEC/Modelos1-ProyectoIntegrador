@@ -42,7 +42,7 @@
     "n_test": 2000
   },
   "evaluation_metric": "MAE (tambien RMSE y R2)",
-  "python_version": "3.12.3",
+  "python_version": "3.14.2",
   "requirements_file": "requirements.txt",
   "git_commit": "unknown"
 }

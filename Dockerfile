@@ -1,5 +1,5 @@
-# Imagen base con version explicita de Python (la misma usada en local: 3.12)
-FROM python:3.12-slim
+# Imagen base con version explicita de Python
+FROM python:3.14.2
 
 WORKDIR /app
 
