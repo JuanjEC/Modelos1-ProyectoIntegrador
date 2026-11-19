@@ -1,6 +1,10 @@
+# Proyecto integrador: precio de vehiculos usados en UAE
+
+Modelo predictivo, scripts de entrenamiento y prediccion, API REST y monitoreo.
+
 # Fase 1: Modelo predictivo. Precio de vehiculos usados en UAE
 
-Modelos y Simulacion de Sistemas I, Universidad de Antioquia, 2026-2. Docente: Andres Parra.
+Modelos y Simulacion de Sistemas I, Universidad de Antioquia. Docente: Andres Parra.
 
 **Integrantes:** Andres Felipe Borja Usuga, Juan Jeronimo Echeverry Chica, Cristian Mateo Sepulveda Ochoa.
 
@@ -47,7 +51,7 @@ Fuga de informacion: la separacion train/test se hace antes de ajustar cualquier
 ## Problema y relacion con la Fase 1
 
 Regresion: predecir `Price` (AED) de un vehiculo usado a partir de 11 variables (`Make`, `Model`, `Year`, `Mileage`, `Body Type`, `Cylinders`, `Transmission`, `Fuel Type`, `Color`, `Location`, `Description`).
-Se conservan el dataset y el enfoque de la Fase 1 (Pipeline con imputacion, escalado, One-Hot, TF-IDF y Random Forest; baseline `DummyRegressor` con la mediana). El notebook sigue en `../fase-1/`.
+Se conservan el dataset y el enfoque de la Fase 1 (Pipeline con imputacion, escalado, One-Hot, TF-IDF y Random Forest; baseline `DummyRegressor` con la mediana). El notebook se conserva en `notebook.ipynb`.
 
 ## Cambios respecto a la Fase 1
 
@@ -63,7 +67,7 @@ Se conservan el dataset y el enfoque de la Fase 1 (Pipeline con imputacion, esca
 
 Bash (Linux/macOS):
 ```bash
-Python 3.14.2 -m venv .venv
+python3.14 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
@@ -137,8 +141,6 @@ python -m pytest
 
 ## Docker
 
-Probado con terminal: _completar (Bash o PowerShell)_.
-
 Bash:
 ```bash
 docker build -t modelos-fase2:1.0 .
@@ -153,8 +155,76 @@ El entrenamiento NO ocurre en `docker build`; `models/` y `outputs/` persisten e
 
 ## Evidencia de ejecucion
 
-![tests](evidencia/tests.png)
+![tests de fase 2](evidencia/tests.PNG)
 Salida completa de la verificacion: [evidencia/resultado.txt](evidencia/resultado.txt).
+
+# Fases 3 y 4: API REST y monitoreo
+
+Se agregaron una API FastAPI en `fase-3/api.py`, un cliente HTTP en `fase-3/cliente.py` y monitoreo en `src/monitoring.py` y `fase-4/monitoreo.py`. Se reutilizan el entrenamiento, la prediccion y los modelos de la fase 2.
+
+## API y configuracion
+
+| Operacion | Resultado |
+|---|---|
+| `GET /health` | HTTP 200, `{"estado":"ok"}`. Indica que el proceso vive, no garantiza disponibilidad del modelo. |
+| `POST /predict` | Un registro JSON, HTTP 200 con `prediccion` en AED y `version`. No requiere `Price`. |
+| `POST /train` | Cuerpo vacio o `{}`. HTTP 201 al terminar y guardar `modelo.joblib`, `metrics.json`, `metadata.json` en una carpeta nueva. |
+
+Variables de entorno (se leen al iniciar el servidor):
+
+| Variable | Por defecto | Uso |
+|---|---|---|
+| `MODEL_VERSION` | `v2` | Selecciona `models/<version>/modelo.joblib`. |
+| `MODELS_DIR` | `models/` del repositorio | Almacenamiento de versiones. |
+| `TRAIN_DATA` | `data/uae_used_cars_10k.csv` | Datos de entrenamiento; objetivo `Price`. |
+| `PREDICTION_LOG` | `outputs/solicitudes.jsonl` | Registro JSONL persistente. |
+
+Las rutas relativas configuradas se resuelven desde el directorio de trabajo; en Docker usar rutas `/app/...`. `/train` conserva la configuracion de v2: semilla 42, division 80/20, Random Forest de 120 arboles, profundidad 20, minimo 2 por hoja, TF-IDF 300 y `log(1+Price)`. Genera un identificador unico de version y responde sin activar la candidata. Es sincronico y puede tardar; no interrumpir la solicitud.
+
+Todas las claves predictoras son obligatorias aunque su valor sea `null`. `Year` y `Mileage` deben ser numeros JSON, no cadenas ni booleanos. Las categoricas y `Description` son texto o `null`; `Cylinders` acepta numero, texto (como `Unknown`) o `null`. Los nulos usan mediana/moda/texto vacio del Pipeline guardado. Los campos extra se ignoran. Un campo ausente o tipo incompatible produce 422 con su nombre; modelo ausente o ilegible produce 503 comprensible. La API carga solo artefactos de confianza del repositorio: `joblib` no es seguro para archivos recibidos de desconocidos.
+
+Ejemplo real, primera fila de `data/ejemplo_prediccion.csv`:
+
+```json
+{"Make":"toyota","Model":"rush","Year":2022,"Mileage":291202,"Body Type":"SUV","Cylinders":4,"Transmission":"Automatic Transmission","Fuel Type":"Gasoline","Color":"Brown","Location":" Dubai","Description":"2022 toyota rush with Bluetooth, Adaptive cruise control. Condition: Repainted bumper."}
+```
+
+Respuesta observada con v2:
+
+```json
+{"prediccion":58252.04,"version":"v2"}
+```
+
+## Monitoreo, versiones y politica
+
+Cada `POST /predict` escribe una linea JSONL al conocer su resultado, incluidos JSON malformados, campos ausentes y errores del modelo. Los eventos contienen `fecha_hora` UTC, `estado_http`, `version` y `prediccion`; los dos ultimos pueden ser `null` en errores. `/health` y `/train` no se cuentan. El archivo se abre en modo agregar y no se borra al reiniciar; en Docker se monta fuera del contenedor.
+
+```bash
+python fase-4/monitoreo.py --log outputs/solicitudes.jsonl
+python fase-4/monitoreo.py --log fase-4/registro_muestra.jsonl
+```
+
+Se cuentan como fallidas las respuestas 400 a 599. Un registro ausente o vacio produce total 0 y porcentaje `sin solicitudes`; uno corrupto da un error con el numero de linea. El registro no almacena los atributos del vehiculo.
+
+Version activa: **v2**, en `models/v2/`; version anterior: **v1**, en `models/v1/`. Para volver a v1, detener y recrear el contenedor cambiando `-e MODEL_VERSION=v2` por `-e MODEL_VERSION=v1`, con el mismo montaje de modelos. Para activar una candidata se usa su identificador de la misma manera; ninguna llamada a `/train` cambia automaticamente la version activa.
+
+**Politica de reentrenamiento:** al reunir 100 anuncios nuevos de vehiculos UAE con su precio real conocido, el equipo revisara el modelo y Juan ejecutara `/train` con un CSV actualizado que incluya esos casos. Comparara candidata y version activa por MAE en AED sobre el mismo conjunto reservado, sin incluir esos casos de evaluacion en el entrenamiento; activara la candidata solo si reduce el MAE al menos un 5 %. Si no mejora o falla la validacion, conservara v2 y mantendra v1 disponible para volver atras.
+
+### Reporte
+
+Ejecucion HTTP real con Uvicorn en `127.0.0.1:8013`, Python 3.12.14 y las dependencias del proyecto; **no es una evidencia de Docker**. El artefacto v2 existente se cargo correctamente y produjo el valor del ejemplo. Registro: `fase-4/registro_muestra.jsonl`.
+
+| Solicitud | Resultado |
+|---|---|
+| Primera fila del CSV, completa | 200, v2, 58252.04 AED |
+| Misma fila, completa | 200, v2, 58252.04 AED |
+| Misma fila sin `Mileage` | 422, sin version ni prediccion |
+
+Indicadores obtenidos: **3 solicitudes**, **1 fallida**, **33,3 % de fallos**. La falla fue el rechazo esperado de una entrada incompleta; no demuestra deterioro del modelo ni mide exactitud predictiva.
+
+Se comprobo `/train` por HTTP: respondio **201** y guardo una nueva version en `models/` con modelo, metricas y metadatos, conservando v1 y v2. La candidata obtuvo MAE 109280.51, RMSE 385337.72 y R2 0.4336; al usar la misma configuracion y datos de v2, no aporta mejora ni se activa.
+
+Pruebas automatizadas: **37 aprobadas**. Cubren los scripts anteriores, rutas HTTP, validacion, nulos, modelo ausente/corrupto, conservacion de versiones, registro unico, persistencia y calculo de indicadores.
 
 ## Fuentes
 
