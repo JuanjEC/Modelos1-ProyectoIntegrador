@@ -1,4 +1,4 @@
-"""Flujo completo de entrenamiento (reutilizable desde train.py, pruebas y, mas adelante, la API)."""
+"""Flujo de entrenamiento compartido por la CLI, la API y las pruebas."""
 
 import hashlib
 import os
