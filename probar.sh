@@ -1,68 +1,53 @@
 #!/usr/bin/env bash
-# Verificacion de la Fase 2. Ejecutar desde la raiz del repositorio:
-#   bash probar.sh 2>&1 | tee resultado.txt
+set -euo pipefail
 
-echo "== 1. Python y pytest"
-python --version
-python -m pytest -q
+cd "$(dirname "$0")"
+image="modelos-api:3.0"
+container="modelos-prueba-$$"
+run_dir="outputs/ensayo-$(date +%Y%m%d-%H%M%S)-$$"
+mkdir -p "$run_dir" models
 
-echo
-echo "== 2. CSV de ejemplo para predecir (sin Price)"
-if [ ! -f data/ejemplo_prediccion.csv ]; then
-  python -c "import pandas as pd; df=pd.read_csv('data/uae_used_cars_10k.csv'); df.drop(columns=['Price']).sample(5,random_state=1).to_csv('data/ejemplo_prediccion.csv',index=False)"
-  echo "creado data/ejemplo_prediccion.csv"
-else
-  echo "ya existe data/ejemplo_prediccion.csv"
+echo "== Construccion y pruebas"
+docker build -t "$image" .
+docker run --rm "$image" python -m pytest -q
+
+cleanup() {
+  docker rm -f "$container" >/dev/null 2>&1 || true
+}
+trap cleanup EXIT
+
+docker run -d --name "$container" \
+  -e MODEL_VERSION=v2 -e PREDICTION_LOG=/app/registro/solicitudes.jsonl \
+  -e GIT_COMMIT="$(git rev-parse HEAD)" \
+  -v "$PWD/data:/app/data:ro" -v "$PWD/models:/app/models" \
+  -v "$PWD/$run_dir:/app/registro" "$image" >/dev/null
+
+ready=false
+for attempt in $(seq 1 60); do
+  if docker exec "$container" python -c "from urllib.request import urlopen; print(urlopen('http://localhost:8000/health').read().decode())" 2>/dev/null; then
+    ready=true
+    break
+  fi
+  sleep 1
+done
+if [ "$ready" != true ]; then
+  docker logs "$container"
+  exit 1
 fi
 
-echo
-echo "== 3. Prediccion local con v1 (ruta .joblib) y v2 (carpeta)"
-mkdir -p outputs
-python predict.py --model models/v1/modelo.joblib --input data/ejemplo_prediccion.csv --output outputs/pred_v1.csv
-echo "codigo de salida: $?"
-python predict.py --model models/v2 --input data/ejemplo_prediccion.csv --output outputs/pred_v2.csv
-echo "codigo de salida: $?"
-head -n 3 outputs/pred_v1.csv outputs/pred_v2.csv
+echo "== Dos predicciones validas y una sin Mileage"
+docker exec "$container" python fase-3/cliente.py
+docker exec "$container" python fase-3/cliente.py
+if docker exec "$container" python fase-3/cliente.py --invalid; then
+  echo "ERROR: se acepto la entrada invalida"
+  exit 1
+fi
 
-echo
-echo "== 4. Version repetida (debe rechazarse, codigo 1)"
-python train.py --data data/uae_used_cars_10k.csv --target Price --output-dir models --version v1 --seed 42
-echo "codigo de salida: $?"
+echo "== Monitoreo (debe mostrar 3 solicitudes y 33,3 % de fallos)"
+docker exec "$container" python fase-4/monitoreo.py --log /app/registro/solicitudes.jsonl
+docker exec "$container" python -c "import json; from pathlib import Path; rows=[json.loads(line) for line in Path('/app/registro/solicitudes.jsonl').read_text().splitlines()]; assert [row['estado_http'] for row in rows]==[200,200,422]; assert all(row['version']=='v2' for row in rows[:2])"
 
-echo
-echo "== 5. Modelo inexistente (debe fallar, codigo 1, sin crear el CSV)"
-python predict.py --model models/no-existe/modelo.joblib --input data/ejemplo_prediccion.csv --output outputs/no_debe_existir.csv
-echo "codigo de salida: $?"
-ls outputs/no_debe_existir.csv 2>&1
+echo "== Entrenamiento HTTP y verificacion de artefactos persistentes"
+docker exec "$container" python -c "import json; from pathlib import Path; from urllib.request import Request,urlopen; response=urlopen(Request('http://localhost:8000/train',data=b'{}',headers={'Content-Type':'application/json'}),timeout=1800); result=json.load(response); version=result['version']; print('HTTP',response.status); print(json.dumps(result,ensure_ascii=False)); assert all((Path('/app/models')/version/name).is_file() for name in ['modelo.joblib','metrics.json','metadata.json'])"
 
-echo
-echo "== 6. Metadatos de v1 y v2 (python_version y git_commit)"
-grep -H -E '"python_version"|"git_commit"' models/v1/metadata.json models/v2/metadata.json
-
-echo
-echo "== 7. Docker: build"
-docker build -t modelos-fase2:1.0 .
-echo "codigo de salida: $?"
-
-echo
-echo "== 8. Docker: entrenamiento (version v-docker)"
-mkdir -p models outputs
-docker run --rm -e GIT_COMMIT="$(git rev-parse HEAD)" -v "$PWD/data:/app/data:ro" -v "$PWD/models:/app/models" modelos-fase2:1.0 python train.py --data data/uae_used_cars_10k.csv --target Price --output-dir models --version v-docker --seed 42
-echo "codigo de salida: $?"
-
-echo
-echo "== 9. Docker: prediccion con v-docker"
-docker run --rm -v "$PWD/data:/app/data:ro" -v "$PWD/models:/app/models:ro" -v "$PWD/outputs:/app/outputs" modelos-fase2:1.0 python predict.py --model models/v-docker/modelo.joblib --input data/ejemplo_prediccion.csv --output outputs/pred_docker.csv
-echo "codigo de salida: $?"
-
-echo
-echo "== 10. Persistencia fuera del contenedor"
-ls -l models/v-docker outputs/pred_docker.csv
-
-echo
-echo "== 11. pytest dentro de Docker"
-docker run --rm modelos-fase2:1.0 python -m pytest -q
-echo "codigo de salida: $?"
-
-echo
-echo "== Fin. Para borrar lo de prueba: sudo rm -rf models/v-docker"
+echo "== Fin. Registro de esta ejecucion: $run_dir/solicitudes.jsonl"

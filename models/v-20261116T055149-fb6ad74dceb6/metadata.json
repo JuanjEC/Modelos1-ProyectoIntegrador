@@ -1,0 +1,48 @@
+{
+  "version": "v-20261116T055149-fb6ad74dceb6",
+  "created_at": "2026-11-16T05:52:14+00:00",
+  "problem_type": "regression",
+  "target": "Price",
+  "algorithm": "random_forest",
+  "model_params": {
+    "n_estimators": 120,
+    "max_depth": 20,
+    "min_samples_leaf": 2,
+    "random_state": 42,
+    "log_target": true
+  },
+  "max_tfidf_features": 300,
+  "seed": 42,
+  "input_features": {
+    "Year": "numerico",
+    "Mileage": "numerico",
+    "Cylinders": "numerico",
+    "Make": "categorico (texto)",
+    "Model": "categorico (texto)",
+    "Body Type": "categorico (texto)",
+    "Transmission": "categorico (texto)",
+    "Fuel Type": "categorico (texto)",
+    "Color": "categorico (texto)",
+    "Location": "categorico (texto)",
+    "Description": "texto libre"
+  },
+  "data": {
+    "source": "https://www.kaggle.com/datasets/mohamedsaad254/uae-used-cars-analysis-full-project-v1-0",
+    "file": "uae_used_cars_10k.csv",
+    "sha256": "1d04099bfa05b7139d5a9f2f97d9aa4cb7be3dfd1c4431b2014890dae77a66ce",
+    "n_rows_raw": 10000,
+    "n_dropped_invalid_target": 0,
+    "n_dropped_duplicates": 0,
+    "n_rows_used": 10000
+  },
+  "split": {
+    "strategy": "train_test_split aleatorio (sin grupos)",
+    "test_size": 0.2,
+    "n_train": 8000,
+    "n_test": 2000
+  },
+  "evaluation_metric": "MAE (tambien RMSE y R2)",
+  "python_version": "3.12.14",
+  "requirements_file": "requirements.txt",
+  "git_commit": "bbeb2902102a305b164e9a8cdc763c3aeb9fc2d9"
+}

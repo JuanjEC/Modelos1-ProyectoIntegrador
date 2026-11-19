@@ -1,16 +1,15 @@
-# Imagen base con version explicita de Python
 FROM python:3.14.2
 
 WORKDIR /app
 
-# Dependencias primero (aprovecha la cache de Docker)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Codigo necesario. NO se entrena nada durante el build.
 COPY src/ ./src/
 COPY tests/ ./tests/
+COPY fase-3/ ./fase-3/
+COPY fase-4/ ./fase-4/
 COPY train.py predict.py ./
 
-# Sin ENTRYPOINT: el comando (train.py, predict.py o pytest) se indica en docker run.
-CMD ["python", "train.py", "--help"]
+EXPOSE 8000
+CMD ["python", "-m", "uvicorn", "--app-dir", "fase-3", "api:app", "--host", "0.0.0.0", "--port", "8000"]
