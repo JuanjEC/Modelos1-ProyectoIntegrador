@@ -137,7 +137,7 @@ Ambas versiones mejoran al baseline. El R2 moderado indica que el precio tiene m
 ```bash
 python -m pytest
 ```
-8 pruebas con datos sinteticos y `tmp_path`: (1) entrenamiento y archivos de la version, (2) carga y prediccion igual al modelo en memoria, (3) valores faltantes, (4) columna ausente y tipo invalido (incluye la CLI con codigo de salida distinto de cero), (5) versionamiento (segunda version conserva la primera, id repetido no sobrescribe), y (6) categorias nuevas, columnas extra y orden de columnas.
+La fase 2 tiene 8 pruebas con datos sinteticos y `tmp_path` (el conjunto completo de fases 2 a 4 tiene 37 pruebas): (1) entrenamiento y archivos de la version, (2) carga y prediccion igual al modelo en memoria, (3) valores faltantes, (4) columna ausente y tipo invalido (incluye la CLI con codigo de salida distinto de cero), (5) versionamiento (segunda version conserva la primera, id repetido no sobrescribe), y (6) categorias nuevas, columnas extra y orden de columnas.
 
 ## Docker
 
@@ -156,7 +156,7 @@ El entrenamiento NO ocurre en `docker build`; `models/` y `outputs/` persisten e
 ## Evidencia de ejecucion
 
 ![tests de fase 2](evidencia/tests.PNG)
-Salida completa de la verificacion: [evidencia/resultado.txt](evidencia/resultado.txt).
+Verificacion de fases 3 y 4 en Docker: [evidencia/resultado.txt](evidencia/resultado.txt).
 
 # Fases 3 y 4: API REST y monitoreo
 
@@ -195,6 +195,36 @@ Respuesta observada con v2:
 {"prediccion":58252.04,"version":"v2"}
 ```
 
+## Ejecucion de la API con Docker
+
+Desde la raiz del repositorio, en Bash (por ejemplo, GitHub Codespaces):
+
+```bash
+mkdir -p models outputs
+docker build -t modelos-api:3.0 .
+docker run --rm --name modelos-api -p 8000:8000 -e MODEL_VERSION=v2 -e PREDICTION_LOG=/app/outputs/solicitudes.jsonl -v "$PWD/data:/app/data:ro" -v "$PWD/models:/app/models" -v "$PWD/outputs:/app/outputs" modelos-api:3.0
+```
+
+Dejar el servidor abierto. `data/` se monta en modo lectura; las versiones nuevas quedan en `models/` y el registro persiste en `outputs/`. En otra terminal, desde la raiz:
+
+```bash
+curl -fsS http://localhost:8000/health
+python fase-3/cliente.py
+python fase-3/cliente.py --invalid
+python fase-4/monitoreo.py --log outputs/solicitudes.jsonl
+curl -sS -X POST http://localhost:8000/train -H 'Content-Type: application/json' -d '{}'
+```
+
+El cliente usa la primera fila de `data/ejemplo_prediccion.csv`; `--invalid` omite `Mileage` y debe devolver HTTP 422 y codigo de salida 1. El resumen acumula las solicitudes del archivo; para repetir desde cero, configurar `PREDICTION_LOG` con otro archivo dentro de `/app/outputs` y consultar ese archivo con el script. `/train` devuelve HTTP 201 y la nueva version al terminar; sus artefactos quedan en `models/<version>/` y v2 sigue activa. Detener el servidor con `Ctrl+C`.
+
+Para ejecutar todas las pruebas dentro de la imagen:
+
+```bash
+docker run --rm modelos-api:3.0 python -m pytest -q
+```
+
+La verificacion integrada automatica es `bash probar.sh`; construye la imagen, ejecuta las pruebas, envia dos predicciones validas y una invalida, calcula el monitoreo y comprueba `/train`. En Codespaces, mantener el puerto 8000 privado; la API es una demostracion sin autenticacion.
+
 ## Monitoreo, versiones y politica
 
 Cada `POST /predict` escribe una linea JSONL al conocer su resultado, incluidos JSON malformados, campos ausentes y errores del modelo. Los eventos contienen `fecha_hora` UTC, `estado_http`, `version` y `prediccion`; los dos ultimos pueden ser `null` en errores. `/health` y `/train` no se cuentan. El archivo se abre en modo agregar y no se borra al reiniciar; en Docker se monta fuera del contenedor.
@@ -224,7 +254,7 @@ Indicadores obtenidos: **3 solicitudes**, **1 fallida**, **33,3 % de fallos**. L
 
 Se comprobo `/train` por HTTP: respondio **201** y guardo una nueva version en `models/` con modelo, metricas y metadatos, conservando v1 y v2. La candidata obtuvo MAE 109280.51, RMSE 385337.72 y R2 0.4336; al usar la misma configuracion y datos de v2, no aporta mejora ni se activa.
 
-Pruebas automatizadas: **37 aprobadas**. Cubren los scripts anteriores, rutas HTTP, validacion, nulos, modelo ausente/corrupto, conservacion de versiones, registro unico, persistencia y calculo de indicadores.
+La verificacion posterior en Docker desde GitHub Codespaces obtuvo **37 pruebas aprobadas**, dos respuestas 200, una 422 esperada, 3 solicitudes y 33,3 % de fallos; `/train` respondio 201 y genero una version nueva. La salida completa esta en [evidencia/resultado.txt](evidencia/resultado.txt). Esta es una ejecucion distinta de la muestra de registro anterior.
 
 ## Fuentes
 
