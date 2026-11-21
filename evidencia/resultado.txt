@@ -1,121 +1,264 @@
-== 1. Python y pytest
-Python 3.14.2
-........                                                                 [100%]
-8 passed in 4.02s
-
-== 2. CSV de ejemplo para predecir (sin Price)
-ya existe data/ejemplo_prediccion.csv
-
-== 3. Prediccion local con v1 (ruta .joblib) y v2 (carpeta)
-Predicciones generadas: 5 filas -> outputs/pred_v1.csv
-codigo de salida: 0
-Predicciones generadas: 5 filas -> outputs/pred_v2.csv
-codigo de salida: 0
-==> outputs/pred_v1.csv <==
-Make,Model,Year,Mileage,Body Type,Cylinders,Transmission,Fuel Type,Color,Location,Description,prediccion
-toyota,rush,2022,291202,SUV,4,Automatic Transmission,Gasoline,Brown, Dubai,"2022 toyota rush with Bluetooth, Adaptive cruise control. Condition: Repainted bumper.",64278.0
-mazda,6,2006,236561,Sedan,4,Automatic Transmission,Gasoline,White, Dubai,"2006 mazda 6 with Sunroof, Adaptive cruise control, Navigation system, Bluetooth. Condition: No damage.",55055.4
-
-==> outputs/pred_v2.csv <==
-Make,Model,Year,Mileage,Body Type,Cylinders,Transmission,Fuel Type,Color,Location,Description,prediccion
-toyota,rush,2022,291202,SUV,4,Automatic Transmission,Gasoline,Brown, Dubai,"2022 toyota rush with Bluetooth, Adaptive cruise control. Condition: Repainted bumper.",58252.04
-mazda,6,2006,236561,Sedan,4,Automatic Transmission,Gasoline,White, Dubai,"2006 mazda 6 with Sunroof, Adaptive cruise control, Navigation system, Bluetooth. Condition: No damage.",37940.21
-
-== 4. Version repetida (debe rechazarse, codigo 1)
-ERROR: La version 'v1' ya existe en models/v1. Elija otro identificador.
-codigo de salida: 1
-
-== 5. Modelo inexistente (debe fallar, codigo 1, sin crear el CSV)
-ERROR: No se encontro el modelo: models/no-existe/modelo.joblib
-codigo de salida: 1
-ls: cannot access 'outputs/no_debe_existir.csv': No such file or directory
-
-== 6. Metadatos de v1 y v2 (python_version y git_commit)
-models/v1/metadata.json:  "python_version": "3.14.2",
-models/v1/metadata.json:  "git_commit": "2ec6118934d39e7938ffa8b3cd4dbb33122138b5"
-models/v2/metadata.json:  "python_version": "3.14.2",
-models/v2/metadata.json:  "git_commit": "2ec6118934d39e7938ffa8b3cd4dbb33122138b5"
-
-== 7. Docker: build
+== Construccion y pruebas
 #0 building with "default" instance using docker driver
 
 #1 [internal] load build definition from Dockerfile
-#1 transferring dockerfile: 496B done
+#1 transferring dockerfile: 379B done
 #1 DONE 0.0s
 
 #2 [auth] library/python:pull token for registry-1.docker.io
 #2 DONE 0.0s
 
 #3 [internal] load metadata for docker.io/library/python:3.14.2
-#3 DONE 0.2s
+#3 DONE 0.5s
 
 #4 [internal] load .dockerignore
 #4 transferring context: 193B done
 #4 DONE 0.0s
 
 #5 [internal] load build context
-#5 transferring context: 1.43kB done
-#5 DONE 0.0s
+#5 transferring context: 48.23kB 0.0s done
+#5 DONE 0.1s
 
-#6 [1/7] FROM docker.io/library/python:3.14.2@sha256:fbf695a1b7e4fd39dfac43165c0da0949262531ecd8e901abe641d79f596af80
+#6 [1/9] FROM docker.io/library/python:3.14.2@sha256:fbf695a1b7e4fd39dfac43165c0da0949262531ecd8e901abe641d79f596af80
 #6 resolve docker.io/library/python:3.14.2@sha256:fbf695a1b7e4fd39dfac43165c0da0949262531ecd8e901abe641d79f596af80 0.0s done
-#6 DONE 0.0s
+#6 DONE 0.2s
 
-#7 [3/7] COPY requirements.txt .
-#7 CACHED
+#6 [1/9] FROM docker.io/library/python:3.14.2@sha256:fbf695a1b7e4fd39dfac43165c0da0949262531ecd8e901abe641d79f596af80
+#6 sha256:506ccddd75bd49162d5a7030abc296206abfa1e06f5e518514ae9bea7888bfa6 250B / 250B 0.0s done
+#6 sha256:20b53cec3b02deef0cd47426f57776ee870f3856eedc5f348b321e0d9919ba82 6.29MB / 29.41MB 0.2s
+#6 sha256:20b53cec3b02deef0cd47426f57776ee870f3856eedc5f348b321e0d9919ba82 15.73MB / 29.41MB 0.3s
+#6 sha256:b6f1f14d9c626d11e2e96e00b5c904072186530b6f807e9d1af0e0e4a2a5342d 3.15MB / 6.09MB 0.2s
+#6 sha256:b5e2021c4c8bd1a46b34d9608a9381afdc333600ee1ef3c94306ecf7373e1956 3.15MB / 67.79MB 0.2s
+#6 sha256:128c712640095cd6361adb8c415d18f40180beef843ae18943d3a366993d7749 3.15MB / 236.00MB 0.2s
+#6 sha256:20b53cec3b02deef0cd47426f57776ee870f3856eedc5f348b321e0d9919ba82 23.07MB / 29.41MB 0.5s
+#6 sha256:b6f1f14d9c626d11e2e96e00b5c904072186530b6f807e9d1af0e0e4a2a5342d 6.09MB / 6.09MB 0.3s
+#6 sha256:20b53cec3b02deef0cd47426f57776ee870f3856eedc5f348b321e0d9919ba82 29.41MB / 29.41MB 0.6s
+#6 sha256:b6f1f14d9c626d11e2e96e00b5c904072186530b6f807e9d1af0e0e4a2a5342d 6.09MB / 6.09MB 0.5s done
+#6 sha256:b5e2021c4c8bd1a46b34d9608a9381afdc333600ee1ef3c94306ecf7373e1956 9.44MB / 67.79MB 0.5s
+#6 sha256:128c712640095cd6361adb8c415d18f40180beef843ae18943d3a366993d7749 22.02MB / 236.00MB 0.5s
+#6 sha256:b5e2021c4c8bd1a46b34d9608a9381afdc333600ee1ef3c94306ecf7373e1956 16.78MB / 67.79MB 0.6s
+#6 sha256:954d6059ca7bdbb9ceb566ca2239e01ef312165659d656753d7dbace7771a591 4.19MB / 25.61MB 0.2s
+#6 sha256:b5e2021c4c8bd1a46b34d9608a9381afdc333600ee1ef3c94306ecf7373e1956 23.07MB / 67.79MB 0.8s
+#6 sha256:954d6059ca7bdbb9ceb566ca2239e01ef312165659d656753d7dbace7771a591 10.49MB / 25.61MB 0.3s
+#6 sha256:b5e2021c4c8bd1a46b34d9608a9381afdc333600ee1ef3c94306ecf7373e1956 30.41MB / 67.79MB 0.9s
+#6 sha256:128c712640095cd6361adb8c415d18f40180beef843ae18943d3a366993d7749 40.89MB / 236.00MB 0.9s
+#6 sha256:954d6059ca7bdbb9ceb566ca2239e01ef312165659d656753d7dbace7771a591 17.83MB / 25.61MB 0.5s
+#6 sha256:b5e2021c4c8bd1a46b34d9608a9381afdc333600ee1ef3c94306ecf7373e1956 38.80MB / 67.79MB 1.1s
+#6 sha256:954d6059ca7bdbb9ceb566ca2239e01ef312165659d656753d7dbace7771a591 25.61MB / 25.61MB 0.6s
+#6 sha256:b5e2021c4c8bd1a46b34d9608a9381afdc333600ee1ef3c94306ecf7373e1956 42.99MB / 67.79MB 1.2s
+#6 sha256:128c712640095cd6361adb8c415d18f40180beef843ae18943d3a366993d7749 54.53MB / 236.00MB 1.2s
+#6 sha256:b5e2021c4c8bd1a46b34d9608a9381afdc333600ee1ef3c94306ecf7373e1956 57.67MB / 67.79MB 1.4s
+#6 sha256:b5e2021c4c8bd1a46b34d9608a9381afdc333600ee1ef3c94306ecf7373e1956 67.79MB / 67.79MB 1.5s
+#6 sha256:128c712640095cd6361adb8c415d18f40180beef843ae18943d3a366993d7749 73.40MB / 236.00MB 1.5s
+#6 sha256:128c712640095cd6361adb8c415d18f40180beef843ae18943d3a366993d7749 94.37MB / 236.00MB 1.8s
+#6 sha256:128c712640095cd6361adb8c415d18f40180beef843ae18943d3a366993d7749 111.15MB / 236.00MB 2.0s
+#6 sha256:128c712640095cd6361adb8c415d18f40180beef843ae18943d3a366993d7749 126.88MB / 236.00MB 2.1s
+#6 sha256:128c712640095cd6361adb8c415d18f40180beef843ae18943d3a366993d7749 143.65MB / 236.00MB 2.3s
+#6 sha256:128c712640095cd6361adb8c415d18f40180beef843ae18943d3a366993d7749 158.78MB / 236.00MB 2.4s
+#6 sha256:128c712640095cd6361adb8c415d18f40180beef843ae18943d3a366993d7749 178.26MB / 236.00MB 2.6s
+#6 sha256:128c712640095cd6361adb8c415d18f40180beef843ae18943d3a366993d7749 198.18MB / 236.00MB 2.7s
+#6 sha256:128c712640095cd6361adb8c415d18f40180beef843ae18943d3a366993d7749 222.30MB / 236.00MB 2.9s
+#6 sha256:128c712640095cd6361adb8c415d18f40180beef843ae18943d3a366993d7749 236.00MB / 236.00MB 3.5s
+#6 sha256:20b53cec3b02deef0cd47426f57776ee870f3856eedc5f348b321e0d9919ba82 29.41MB / 29.41MB 5.7s
+#6 sha256:954d6059ca7bdbb9ceb566ca2239e01ef312165659d656753d7dbace7771a591 25.61MB / 25.61MB 5.7s
+#6 sha256:b5e2021c4c8bd1a46b34d9608a9381afdc333600ee1ef3c94306ecf7373e1956 67.79MB / 67.79MB 6.6s
+#6 sha256:20b53cec3b02deef0cd47426f57776ee870f3856eedc5f348b321e0d9919ba82 29.41MB / 29.41MB 8.5s done
+#6 sha256:b5e2021c4c8bd1a46b34d9608a9381afdc333600ee1ef3c94306ecf7373e1956 67.79MB / 67.79MB 8.5s done
+#6 sha256:128c712640095cd6361adb8c415d18f40180beef843ae18943d3a366993d7749 236.00MB / 236.00MB 8.5s done
+#6 sha256:954d6059ca7bdbb9ceb566ca2239e01ef312165659d656753d7dbace7771a591 25.61MB / 25.61MB 8.0s done
+#6 sha256:ef235bf1a09a237b896b69935c8c8d917c9c6a78b538724911414afc0a96763c 12.58MB / 49.29MB 0.2s
+#6 sha256:ef235bf1a09a237b896b69935c8c8d917c9c6a78b538724911414afc0a96763c 36.70MB / 49.29MB 0.3s
+#6 sha256:ef235bf1a09a237b896b69935c8c8d917c9c6a78b538724911414afc0a96763c 49.29MB / 49.29MB 0.5s
+#6 sha256:ef235bf1a09a237b896b69935c8c8d917c9c6a78b538724911414afc0a96763c 49.29MB / 49.29MB 1.4s done
+#6 extracting sha256:ef235bf1a09a237b896b69935c8c8d917c9c6a78b538724911414afc0a96763c
+#6 extracting sha256:ef235bf1a09a237b896b69935c8c8d917c9c6a78b538724911414afc0a96763c 2.5s done
+#6 extracting sha256:954d6059ca7bdbb9ceb566ca2239e01ef312165659d656753d7dbace7771a591
+#6 extracting sha256:954d6059ca7bdbb9ceb566ca2239e01ef312165659d656753d7dbace7771a591 2.1s done
+#6 DONE 14.7s
 
-#8 [5/7] COPY src/ ./src/
-#8 CACHED
+#6 [1/9] FROM docker.io/library/python:3.14.2@sha256:fbf695a1b7e4fd39dfac43165c0da0949262531ecd8e901abe641d79f596af80
+#6 extracting sha256:b5e2021c4c8bd1a46b34d9608a9381afdc333600ee1ef3c94306ecf7373e1956
+#6 extracting sha256:b5e2021c4c8bd1a46b34d9608a9381afdc333600ee1ef3c94306ecf7373e1956 2.6s done
+#6 DONE 17.3s
 
-#9 [6/7] COPY tests/ ./tests/
-#9 CACHED
+#6 [1/9] FROM docker.io/library/python:3.14.2@sha256:fbf695a1b7e4fd39dfac43165c0da0949262531ecd8e901abe641d79f596af80
+#6 extracting sha256:128c712640095cd6361adb8c415d18f40180beef843ae18943d3a366993d7749
+#6 extracting sha256:128c712640095cd6361adb8c415d18f40180beef843ae18943d3a366993d7749 26.3s done
+#6 DONE 43.6s
 
-#10 [2/7] WORKDIR /app
-#10 CACHED
+#6 [1/9] FROM docker.io/library/python:3.14.2@sha256:fbf695a1b7e4fd39dfac43165c0da0949262531ecd8e901abe641d79f596af80
+#6 extracting sha256:b6f1f14d9c626d11e2e96e00b5c904072186530b6f807e9d1af0e0e4a2a5342d
+#6 extracting sha256:b6f1f14d9c626d11e2e96e00b5c904072186530b6f807e9d1af0e0e4a2a5342d 0.3s done
+#6 DONE 43.9s
 
-#11 [4/7] RUN pip install --no-cache-dir -r requirements.txt
-#11 CACHED
+#6 [1/9] FROM docker.io/library/python:3.14.2@sha256:fbf695a1b7e4fd39dfac43165c0da0949262531ecd8e901abe641d79f596af80
+#6 extracting sha256:20b53cec3b02deef0cd47426f57776ee870f3856eedc5f348b321e0d9919ba82
+#6 extracting sha256:20b53cec3b02deef0cd47426f57776ee870f3856eedc5f348b321e0d9919ba82 0.9s done
+#6 DONE 44.9s
 
-#12 [7/7] COPY train.py predict.py ./
-#12 CACHED
+#6 [1/9] FROM docker.io/library/python:3.14.2@sha256:fbf695a1b7e4fd39dfac43165c0da0949262531ecd8e901abe641d79f596af80
+#6 extracting sha256:506ccddd75bd49162d5a7030abc296206abfa1e06f5e518514ae9bea7888bfa6 0.0s done
+#6 DONE 44.9s
 
-#13 exporting to image
-#13 exporting layers done
-#13 exporting manifest sha256:eba458993be64cd00ac1f2b298e73d6bc68217268b4aa010f042be497cc314a3 done
-#13 exporting config sha256:51666e7784eb732597b35563d56a35c13cfa9e914cff824a0965cb691adda795 done
-#13 exporting attestation manifest sha256:c04a6b99e31597abf593f2a7f83c881aa103085164038136a47dc92643a94671 0.0s done
-#13 exporting manifest list sha256:a5ccde1540f28a0af698fbd20339475b63991479a64595dd37d65669fecf98a4 done
-#13 naming to docker.io/library/modelos-fase2:1.0 done
-#13 unpacking to docker.io/library/modelos-fase2:1.0
-#13 unpacking to docker.io/library/modelos-fase2:1.0 0.0s done
-#13 DONE 0.1s
-codigo de salida: 0
+#7 [2/9] WORKDIR /app
+#7 DONE 2.8s
 
-== 8. Docker: entrenamiento (version v-docker)
-Version 'v-docker' entrenada (random_forest, log_target=False)
-  Modelo   -> MAE=118404.02  RMSE=388746.29  R2=0.4236
-  Baseline -> MAE=192459.92  RMSE=532043.08  R2=-0.0797
-  model: models/v-docker/modelo.joblib
-  metrics: models/v-docker/metrics.json
-  metadata: models/v-docker/metadata.json
-codigo de salida: 0
+#8 [3/9] COPY requirements.txt .
+#8 DONE 0.0s
 
-== 9. Docker: prediccion con v-docker
-Predicciones generadas: 5 filas -> outputs/pred_docker.csv
-codigo de salida: 0
+#9 [4/9] RUN pip install --no-cache-dir -r requirements.txt
+#9 2.448 Collecting numpy==2.4.4 (from -r requirements.txt (line 1))
+#9 2.494   Downloading numpy-2.4.4-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (6.6 kB)
+#9 2.756 Collecting pandas==3.0.2 (from -r requirements.txt (line 2))
+#9 2.765   Downloading pandas-3.0.2-cp314-cp314-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (79 kB)
+#9 2.914 Collecting scikit-learn==1.8.0 (from -r requirements.txt (line 3))
+#9 2.924   Downloading scikit_learn-1.8.0-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (11 kB)
+#9 3.095 Collecting scipy==1.17.1 (from -r requirements.txt (line 4))
+#9 3.106   Downloading scipy-1.17.1-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (62 kB)
+#9 3.154 Collecting joblib==1.5.3 (from -r requirements.txt (line 5))
+#9 3.162   Downloading joblib-1.5.3-py3-none-any.whl.metadata (5.5 kB)
+#9 3.211 Collecting pytest==9.1.1 (from -r requirements.txt (line 6))
+#9 3.220   Downloading pytest-9.1.1-py3-none-any.whl.metadata (7.6 kB)
+#9 3.295 Collecting fastapi==0.115.12 (from -r requirements.txt (line 7))
+#9 3.304   Downloading fastapi-0.115.12-py3-none-any.whl.metadata (27 kB)
+#9 3.354 Collecting uvicorn==0.34.2 (from -r requirements.txt (line 8))
+#9 3.362   Downloading uvicorn-0.34.2-py3-none-any.whl.metadata (6.5 kB)
+#9 3.399 Collecting httpx==0.28.1 (from -r requirements.txt (line 9))
+#9 3.407   Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+#9 3.461 Collecting python-dateutil>=2.8.2 (from pandas==3.0.2->-r requirements.txt (line 2))
+#9 3.470   Downloading python_dateutil-4.0.0-py3-none-any.whl.metadata (7.3 kB)
+#9 3.517 Collecting threadpoolctl>=3.2.0 (from scikit-learn==1.8.0->-r requirements.txt (line 3))
+#9 3.524   Downloading threadpoolctl-3.8.0-py3-none-any.whl.metadata (29 kB)
+#9 3.568 Collecting iniconfig>=1.0.1 (from pytest==9.1.1->-r requirements.txt (line 6))
+#9 3.577   Downloading iniconfig-2.3.1-py3-none-any.whl.metadata (2.8 kB)
+#9 3.614 Collecting packaging>=22 (from pytest==9.1.1->-r requirements.txt (line 6))
+#9 3.622   Downloading packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+#9 3.653 Collecting pluggy<2,>=1.5 (from pytest==9.1.1->-r requirements.txt (line 6))
+#9 3.660   Downloading pluggy-1.7.0-py3-none-any.whl.metadata (5.0 kB)
+#9 3.704 Collecting pygments>=2.7.2 (from pytest==9.1.1->-r requirements.txt (line 6))
+#9 3.717   Downloading pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+#9 3.775 Collecting starlette<0.47.0,>=0.40.0 (from fastapi==0.115.12->-r requirements.txt (line 7))
+#9 3.783   Downloading starlette-0.46.2-py3-none-any.whl.metadata (6.2 kB)
+#9 3.960 Collecting pydantic!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0,>=1.7.4 (from fastapi==0.115.12->-r requirements.txt (line 7))
+#9 3.970   Downloading pydantic-2.14.4-py3-none-any.whl.metadata (143 kB)
+#9 4.019 Collecting typing-extensions>=4.8.0 (from fastapi==0.115.12->-r requirements.txt (line 7))
+#9 4.028   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+#9 4.075 Collecting click>=7.0 (from uvicorn==0.34.2->-r requirements.txt (line 8))
+#9 4.083   Downloading click-8.5.1-py3-none-any.whl.metadata (2.6 kB)
+#9 4.112 Collecting h11>=0.8 (from uvicorn==0.34.2->-r requirements.txt (line 8))
+#9 4.120   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+#9 4.161 Collecting anyio (from httpx==0.28.1->-r requirements.txt (line 9))
+#9 4.169   Downloading anyio-4.16.0-py3-none-any.whl.metadata (4.7 kB)
+#9 4.228 Collecting certifi (from httpx==0.28.1->-r requirements.txt (line 9))
+#9 4.241   Downloading certifi-2026.11.20-py3-none-any.whl.metadata (2.5 kB)
+#9 4.299 Collecting httpcore==1.* (from httpx==0.28.1->-r requirements.txt (line 9))
+#9 4.307   Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+#9 4.341 Collecting idna (from httpx==0.28.1->-r requirements.txt (line 9))
+#9 4.351   Downloading idna-3.20-py3-none-any.whl.metadata (7.2 kB)
+#9 4.386 Collecting annotated-types>=0.6.0 (from pydantic!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0,>=1.7.4->fastapi==0.115.12->-r requirements.txt (line 7))
+#9 4.393   Downloading annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+#9 5.294 Collecting pydantic-core==2.50.5 (from pydantic!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0,>=1.7.4->fastapi==0.115.12->-r requirements.txt (line 7))
+#9 5.304   Downloading pydantic_core-2.50.5-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (6.6 kB)
+#9 5.334 Collecting typing-inspection>=0.4.4 (from pydantic!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0,>=1.7.4->fastapi==0.115.12->-r requirements.txt (line 7))
+#9 5.342   Downloading typing_inspection-0.4.5-py3-none-any.whl.metadata (2.6 kB)
+#9 5.391 Collecting tzdata (from python-dateutil>=2.8.2->pandas==3.0.2->-r requirements.txt (line 2))
+#9 5.400   Downloading tzdata-2026.6-py2.py3-none-any.whl.metadata (1.4 kB)
+#9 5.423 Downloading numpy-2.4.4-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.6 MB)
+#9 5.543    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.6/16.6 MB 139.9 MB/s  0:00:00
+#9 5.553 Downloading pandas-3.0.2-cp314-cp314-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (10.9 MB)
+#9 5.655    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.9/10.9 MB 110.6 MB/s  0:00:00
+#9 5.667 Downloading scikit_learn-1.8.0-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (8.9 MB)
+#9 5.739    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 8.9/8.9 MB 126.2 MB/s  0:00:00
+#9 5.748 Downloading scipy-1.17.1-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (35.2 MB)
+#9 6.046    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 35.2/35.2 MB 118.9 MB/s  0:00:00
+#9 6.054 Downloading joblib-1.5.3-py3-none-any.whl (309 kB)
+#9 6.065 Downloading pytest-9.1.1-py3-none-any.whl (386 kB)
+#9 6.077 Downloading fastapi-0.115.12-py3-none-any.whl (95 kB)
+#9 6.085 Downloading uvicorn-0.34.2-py3-none-any.whl (62 kB)
+#9 6.094 Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+#9 6.102 Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+#9 6.110 Downloading pluggy-1.7.0-py3-none-any.whl (27 kB)
+#9 6.119 Downloading pydantic-2.14.4-py3-none-any.whl (494 kB)
+#9 6.128 Downloading pydantic_core-2.50.5-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (2.3 MB)
+#9 6.149    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.3/2.3 MB 187.4 MB/s  0:00:00
+#9 6.158 Downloading starlette-0.46.2-py3-none-any.whl (72 kB)
+#9 6.168 Downloading anyio-4.16.0-py3-none-any.whl (134 kB)
+#9 6.176 Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+#9 6.186 Downloading click-8.5.1-py3-none-any.whl (126 kB)
+#9 6.193 Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+#9 6.201 Downloading idna-3.20-py3-none-any.whl (69 kB)
+#9 6.210 Downloading iniconfig-2.3.1-py3-none-any.whl (7.6 kB)
+#9 6.220 Downloading packaging-26.3-py3-none-any.whl (129 kB)
+#9 6.228 Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
+#9 6.233    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 390.4 MB/s  0:00:00
+#9 6.243 Downloading python_dateutil-4.0.0-py3-none-any.whl (92 kB)
+#9 6.252 Downloading threadpoolctl-3.8.0-py3-none-any.whl (32 kB)
+#9 6.262 Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+#9 6.269 Downloading typing_inspection-0.4.5-py3-none-any.whl (14 kB)
+#9 6.280 Downloading certifi-2026.11.20-py3-none-any.whl (127 kB)
+#9 6.288 Downloading tzdata-2026.6-py2.py3-none-any.whl (348 kB)
+#9 6.494 Installing collected packages: tzdata, typing-extensions, threadpoolctl, pygments, pluggy, packaging, numpy, joblib, iniconfig, idna, h11, click, certifi, annotated-types, uvicorn, typing-inspection, scipy, python-dateutil, pytest, pydantic-core, httpcore, anyio, starlette, scikit-learn, pydantic, pandas, httpx, fastapi
+#9 31.03 
+#9 31.04 Successfully installed annotated-types-0.8.0 anyio-4.16.0 certifi-2026.11.20 click-8.5.1 fastapi-0.115.12 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 idna-3.20 iniconfig-2.3.1 joblib-1.5.3 numpy-2.4.4 packaging-26.3 pandas-3.0.2 pluggy-1.7.0 pydantic-2.14.4 pydantic-core-2.50.5 pygments-2.21.0 pytest-9.1.1 python-dateutil-4.0.0 scikit-learn-1.8.0 scipy-1.17.1 starlette-0.46.2 threadpoolctl-3.8.0 typing-extensions-4.16.0 typing-inspection-0.4.5 tzdata-2026.6 uvicorn-0.34.2
+#9 31.04 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+#9 31.18 
+#9 31.18 [notice] A new release of pip is available: 25.3 -> 26.3
+#9 31.18 [notice] To update, run: pip install --upgrade pip
+#9 DONE 33.3s
 
-== 10. Persistencia fuera del contenedor
--rw-rw-rw-  1 root root 1047 Oct 17 05:22 outputs/pred_docker.csv
+#10 [5/9] COPY src/ ./src/
+#10 DONE 0.4s
 
-models/v-docker:
-total 1984
--rw-rw-rw- 1 root root    1427 Oct 17 05:22 metadata.json
--rw-rw-rw- 1 root root     388 Oct 17 05:22 metrics.json
--rw-rw-rw- 1 root root 2022765 Oct 17 05:22 modelo.joblib
+#11 [6/9] COPY tests/ ./tests/
+#11 DONE 0.0s
 
-== 11. pytest dentro de Docker
-........                                                                 [100%]
-8 passed in 4.16s
-codigo de salida: 0
+#12 [7/9] COPY fase-3/ ./fase-3/
+#12 DONE 0.0s
 
-== Fin. Para borrar lo de prueba: sudo rm -rf models/v-docker
+#13 [8/9] COPY fase-4/ ./fase-4/
+#13 DONE 0.0s
+
+#14 [9/9] COPY train.py predict.py ./
+#14 DONE 0.0s
+
+#15 exporting to image
+#15 exporting layers
+#15 exporting layers 9.2s done
+#15 exporting manifest sha256:eda0106573362a16b2361a05f7631d533988cdfb8df2ffc58cbc6ff8ee2f036a
+#15 exporting manifest sha256:eda0106573362a16b2361a05f7631d533988cdfb8df2ffc58cbc6ff8ee2f036a 0.0s done
+#15 exporting config sha256:63f4ba85047936c67ae5d0df729c09fe9a31da18917eb1b06bd677af33ff030d 0.0s done
+#15 exporting attestation manifest sha256:5ea59057df1a70a19c0bb0ad8a5cc2150198c47aa5d1c19651be1f5bd0d74005 0.0s done
+#15 exporting manifest list sha256:162f37552e5b06ff1a169089a9869e8367286db086cedb3447c19545060fa47c 0.0s done
+#15 naming to docker.io/library/modelos-api:3.0 done
+#15 unpacking to docker.io/library/modelos-api:3.0
+#15 unpacking to docker.io/library/modelos-api:3.0 48.9s done
+#15 DONE 58.3s
+.....................................                                    [100%]
+=============================== warnings summary ===============================
+../usr/local/lib/python3.14/site-packages/starlette/testclient.py:37
+  /usr/local/lib/python3.14/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+../usr/local/lib/python3.14/site-packages/fastapi/routing.py:233: 3 warnings
+tests/test_api.py: 60 warnings
+  /usr/local/lib/python3.14/site-packages/fastapi/routing.py:233: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    is_coroutine = asyncio.iscoroutinefunction(dependant.call)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+37 passed, 64 warnings in 7.59s
+{"estado":"ok"}
+== Dos predicciones validas y una sin Mileage
+HTTP 200
+{"prediccion":58252.04,"version":"v2"}
+HTTP 200
+{"prediccion":58252.04,"version":"v2"}
+HTTP 422
+{"detail":"Faltan campos obligatorios: Mileage"}
+== Monitoreo (debe mostrar 3 solicitudes y 33,3 % de fallos)
+Total de solicitudes: 3
+Solicitudes fallidas: 1
+Porcentaje de fallos: 33,3 %
+== Entrenamiento HTTP y verificacion de artefactos persistentes
+HTTP 201
+{"version": "v-20261121T202659-9e2237ded328", "metricas": {"metrica_principal": "MAE", "modelo": {"MAE": 109266.40787567323, "RMSE": 385320.16015068255, "R2": 0.4336945322698943}, "baseline_mediana": {"MAE": 192459.9205, "RMSE": 532043.0768114275, "R2": -0.07969448543664037}, "mejora_vs_baseline": {"MAE_reduccion_pct": 43.22640911842566}, "evaluado_sobre": "conjunto de prueba (2000 filas)"}}
+== Fin. Registro de esta ejecucion: outputs/ensayo-20261121-202423-5015/solicitudes.jsonl
